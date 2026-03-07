@@ -12,23 +12,52 @@
     <link rel="icon" type="image/png" href="./icon.png">
 
     <style>
-        body { font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; background: #f4f7f9; color: #333; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
-        .header { text-align: center; margin-bottom: 20px; }
-        h2 { color: #1e3a8a; margin: 5px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        p.guide { font-size: 12px; color: #777; margin-bottom: 15px; }
-        textarea { width: 100%; height: 140px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; resize: none; font-family: 'Courier New', monospace; outline: none; transition: 0.3s; }
-        textarea:focus { border-color: #1e3a8a; }
+        :root {
+            --bg: #f4f7f9;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --primary: #1e3a8a;
+            --secondary: #64748b;
+            --input-border: #e0e0e0;
+            --row-border: #edf2f7;
+            --total-bg: #eff6ff;
+            --total-border: #bfdbfe;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --primary: #3b82f6;
+            --secondary: #94a3b8;
+            --input-border: #334155;
+            --row-border: #334155;
+            --total-bg: #1e3a8a;
+            --total-border: #2563eb;
+        }
+
+        body { font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; margin: auto; transition: 0.3s; }
+        
+        .header { text-align: center; margin-bottom: 20px; position: relative; }
+        .theme-toggle { position: absolute; top: 0; right: 0; background: none; border: 1px solid var(--secondary); color: var(--text); padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; width: auto; margin: 0; }
+        
+        h2 { color: var(--primary); margin: 5px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        p.guide { font-size: 12px; color: var(--secondary); margin-bottom: 15px; }
+        
+        textarea { width: 100%; height: 140px; padding: 12px; border: 2px solid var(--input-border); border-radius: 10px; font-size: 16px; box-sizing: border-box; resize: none; font-family: 'Courier New', monospace; outline: none; background: var(--card-bg); color: var(--text); transition: 0.3s; }
+        textarea:focus { border-color: var(--primary); }
+        
         button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 12px; font-size: 16px; transition: 0.2s; }
-        .calc-btn { background: #1e3a8a; color: white; }
-        .calc-btn:active { transform: scale(0.98); }
+        .calc-btn { background: var(--primary); color: white; }
         .share-btn { background: #25D366; color: white; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: #fff; }
-        th { background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #edf2f7; }
-        td { border-bottom: 1px solid #edf2f7; padding: 12px; font-size: 15px; }
-        .total-box { margin-top: 20px; padding: 20px; background: #eff6ff; border-radius: 12px; text-align: center; font-size: 22px; font-weight: bold; color: #1e3a8a; border: 1px solid #bfdbfe; }
-        .history-section { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-        .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid #f1f5f9; color: #475569; display: flex; justify-content: space-between; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        th { color: var(--secondary); font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid var(--row-border); }
+        td { border-bottom: 1px solid var(--row-border); padding: 12px; font-size: 15px; }
+        
+        .total-box { margin-top: 20px; padding: 20px; background: var(--total-bg); border-radius: 12px; text-align: center; font-size: 22px; font-weight: bold; color: var(--text); border: 1px solid var(--total-border); }
+        .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid var(--row-border); color: var(--secondary); display: flex; justify-content: space-between; }
         .clear-btn { background: none; color: #ef4444; font-size: 12px; text-decoration: underline; padding: 5px; margin-top: 10px; width: auto; display: block; margin-left: auto; }
     </style>
 </head>
@@ -36,8 +65,9 @@
 
 <div class="card">
     <div class="header">
-        <h2>Menachery Timber Industries</h2>
-        <p class="guide">Enter <b>Length, Girth</b> per line (e.g., 10, 24)</p>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+        <h2>MTI Timber Calc</h2>
+        <p class="guide"><b>Menachery Timber Industries</b><br>Enter Length, Girth per line</p>
     </div>
     
     <textarea id="inputData" placeholder="10, 24&#10;12, 30"></textarea>
@@ -53,8 +83,8 @@
         <div class="total-box" id="totalResult"></div>
     </div>
 
-    <div class="history-section">
-        <h3 style="font-size: 14px; color: #64748b;">Recent Totals</h3>
+    <div style="margin-top: 30px; border-top: 1px solid var(--input-border); padding-top: 20px;">
+        <h3 style="font-size: 14px; color: var(--secondary);">Recent Totals</h3>
         <div id="historyList"></div>
         <button class="clear-btn" onclick="clearHistory()">Clear History</button>
     </div>
@@ -63,7 +93,24 @@
 <script>
 let shareText = "";
 
-window.onload = displayHistory;
+// Theme Logic
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const target = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', target);
+    localStorage.setItem('mtiTheme', target);
+    document.querySelector('.theme-toggle').innerText = target === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+// Load Preferences
+window.onload = () => {
+    const savedTheme = localStorage.getItem('mtiTheme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-toggle').innerText = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+    displayHistory();
+};
 
 function processData() {
     const input = document.getElementById('inputData').value;
@@ -111,34 +158,27 @@ function saveToHistory(total, count) {
 function displayHistory() {
     const history = JSON.parse(localStorage.getItem('mtiHistory') || "[]");
     const list = document.getElementById('historyList');
-    list.innerHTML = history.length ? '' : '<p style="font-size:12px;color:#999;">No history available.</p>';
+    list.innerHTML = history.length ? '' : '<p style="font-size:12px;color:#999;">No history yet.</p>';
     history.forEach(item => {
-        list.innerHTML += `<div class="history-item"><span><b>${item.total} ft³</b> (${item.count} logs)</span><span style="color:#94a3b8">${item.timestamp}</span></div>`;
+        list.innerHTML += `<div class="history-item"><span><b>${item.total} ft³</b> (${item.count} logs)</span><span>${item.timestamp}</span></div>`;
     });
 }
 
-function clearHistory() {
-    localStorage.removeItem('mtiHistory');
-    displayHistory();
-}
+function clearHistory() { localStorage.removeItem('mtiHistory'); displayHistory(); }
 
 function shareWhatsApp() {
     const url = "https://wa.me/?text=" + encodeURIComponent(shareText);
     window.open(url, '_blank');
 }
 
-// OFFLINE SERVICE WORKER
+// SERVICE WORKER
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const swCode = `
-      const cacheName = 'mti-v4';
+      const cacheName = 'mti-v5';
       const assets = ['./', './index.html', './manifest.json', './icon.png'];
-      self.addEventListener('install', e => {
-        e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets)));
-      });
-      self.addEventListener('fetch', e => {
-        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-      });
+      self.addEventListener('install', e => { e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets))); });
+      self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request))); });
     `;
     const blob = new Blob([swCode], {type: 'text/javascript'});
     navigator.serviceWorker.register(URL.createObjectURL(blob));
