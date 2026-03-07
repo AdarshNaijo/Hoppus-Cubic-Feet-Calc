@@ -2,50 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timber Calc Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MTI Timber Calc</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="./icon.png">
+
     <style>
-        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        h2 { text-align: center; color: #1a73e8; margin-bottom: 5px; }
-        p.guide { font-size: 12px; color: #666; text-align: center; margin-bottom: 15px; }
-        textarea { width: 100%; height: 120px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; resize: none; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .calc-btn { background: #1a73e8; color: white; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; background: #f4f7f9; color: #333; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
+        .header { text-align: center; margin-bottom: 20px; }
+        h2 { color: #1e3a8a; margin: 5px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        p.guide { font-size: 12px; color: #777; margin-bottom: 15px; }
+        textarea { width: 100%; height: 140px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; box-sizing: border-box; resize: none; font-family: 'Courier New', monospace; outline: none; transition: 0.3s; }
+        textarea:focus { border-color: #1e3a8a; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 12px; font-size: 16px; transition: 0.2s; }
+        .calc-btn { background: #1e3a8a; color: white; }
+        .calc-btn:active { transform: scale(0.98); }
         .share-btn { background: #25D366; color: white; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: left; font-size: 14px; }
-        .total-box { margin-top: 15px; padding: 15px; background: #e8f0fe; border-radius: 8px; text-align: center; font-size: 18px; font-weight: bold; color: #1967d2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: #fff; }
+        th { background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #edf2f7; }
+        td { border-bottom: 1px solid #edf2f7; padding: 12px; font-size: 15px; }
+        .total-box { margin-top: 20px; padding: 20px; background: #eff6ff; border-radius: 12px; text-align: center; font-size: 22px; font-weight: bold; color: #1e3a8a; border: 1px solid #bfdbfe; }
+        .history-section { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid #f1f5f9; color: #475569; display: flex; justify-content: space-between; }
+        .clear-btn { background: none; color: #ef4444; font-size: 12px; text-decoration: underline; padding: 5px; margin-top: 10px; width: auto; display: block; margin-left: auto; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Timber Calculator</h2>
-    <p class="guide">Formula: (Length × Girth²) / 2304</p>
-    <textarea id="inputData" placeholder="Enter: Length, Girth&#10;10, 24&#10;12, 30"></textarea>
+    <div class="header">
+        <h2>Menachery Timber Industries</h2>
+        <p class="guide">Enter <b>Length, Girth</b> per line (e.g., 10, 24)</p>
+    </div>
     
-    <button class="calc-btn" onclick="processData()">Calculate & Generate Table</button>
-    <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
+    <textarea id="inputData" placeholder="10, 24&#10;12, 30"></textarea>
+    
+    <button class="calc-btn" onclick="processData()">Calculate Volume</button>
+    <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share to WhatsApp</button>
 
     <div id="outputArea" style="display:none;">
         <table>
-            <thead><tr><th>#</th><th>L</th><th>G</th><th>Volume</th></tr></thead>
+            <thead><tr><th>#</th><th>Length</th><th>Girth</th><th>Cu.Ft</th></tr></thead>
             <tbody id="tableBody"></tbody>
         </table>
         <div class="total-box" id="totalResult"></div>
+    </div>
+
+    <div class="history-section">
+        <h3 style="font-size: 14px; color: #64748b;">Recent Totals</h3>
+        <div id="historyList"></div>
+        <button class="clear-btn" onclick="clearHistory()">Clear History</button>
     </div>
 </div>
 
 <script>
 let shareText = "";
+
+window.onload = displayHistory;
+
 function processData() {
     const input = document.getElementById('inputData').value;
     const lines = input.split('\n');
     const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
     let grandTotal = 0;
     let count = 0;
-    shareText = "*Timber Calculation Report*\n--------------------------\n";
+    shareText = "*Menachery Timber Industries*\n*Calculation Report*\n--------------------------\n";
 
     lines.forEach((line) => {
         const values = line.split(/[,\s\t]+/).filter(v => v.trim() !== "");
@@ -56,8 +83,8 @@ function processData() {
                 count++;
                 const vol = (x * y * y) / 2304;
                 grandTotal += vol;
-                tableBody.innerHTML += `<tr><td>${count}</td><td>${x}</td><td>${y}</td><td>${vol.toFixed(3)}</td></tr>`;
-                shareText += `${count}. L:${x}, G:${y} → *${vol.toFixed(3)}* cu.ft\n`;
+                tableBody.innerHTML += `<tr><td>${count}</td><td>${x}</td><td>${y}</td><td><b>${vol.toFixed(3)}</b></td></tr>`;
+                shareText += `${count}. L:${x}, G:${y} → *${vol.toFixed(3)}* ft³\n`;
             }
         }
     });
@@ -66,15 +93,58 @@ function processData() {
         document.getElementById('outputArea').style.display = 'block';
         document.getElementById('shareBtn').style.display = 'block';
         const totalStr = grandTotal.toFixed(3);
-        document.getElementById('totalResult').innerText = "Total Volume: " + totalStr + " cu.ft";
+        document.getElementById('totalResult').innerText = "Total: " + totalStr + " cu.ft";
         shareText += `--------------------------\n*Total Volume: ${totalStr} cu.ft*`;
+        saveToHistory(totalStr, count);
     }
+}
+
+function saveToHistory(total, count) {
+    let history = JSON.parse(localStorage.getItem('mtiHistory') || "[]");
+    const timestamp = new Date().toLocaleString([], {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
+    history.unshift({ total, count, timestamp });
+    history = history.slice(0, 10); 
+    localStorage.setItem('mtiHistory', JSON.stringify(history));
+    displayHistory();
+}
+
+function displayHistory() {
+    const history = JSON.parse(localStorage.getItem('mtiHistory') || "[]");
+    const list = document.getElementById('historyList');
+    list.innerHTML = history.length ? '' : '<p style="font-size:12px;color:#999;">No history available.</p>';
+    history.forEach(item => {
+        list.innerHTML += `<div class="history-item"><span><b>${item.total} ft³</b> (${item.count} logs)</span><span style="color:#94a3b8">${item.timestamp}</span></div>`;
+    });
+}
+
+function clearHistory() {
+    localStorage.removeItem('mtiHistory');
+    displayHistory();
 }
 
 function shareWhatsApp() {
     const url = "https://wa.me/?text=" + encodeURIComponent(shareText);
     window.open(url, '_blank');
 }
+
+// OFFLINE SERVICE WORKER
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swCode = `
+      const cacheName = 'mti-v4';
+      const assets = ['./', './index.html', './manifest.json', './icon.png'];
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets)));
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], {type: 'text/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob));
+  });
+}
 </script>
+
 </body>
 </html>
