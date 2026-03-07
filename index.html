@@ -13,52 +13,39 @@
 
     <style>
         :root {
-            --bg: #f4f7f9;
-            --card-bg: #ffffff;
-            --text: #333333;
-            --primary: #1e3a8a;
-            --secondary: #64748b;
-            --input-border: #e0e0e0;
-            --row-border: #edf2f7;
-            --total-bg: #eff6ff;
-            --total-border: #bfdbfe;
+            --bg: #f4f7f9; --card-bg: #ffffff; --text: #333333;
+            --primary: #1e3a8a; --secondary: #64748b;
+            --input-border: #e0e0e0; --row-border: #edf2f7;
+            --total-bg: #eff6ff; --total-border: #bfdbfe;
         }
-
         [data-theme="dark"] {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f8fafc;
-            --primary: #3b82f6;
-            --secondary: #94a3b8;
-            --input-border: #334155;
-            --row-border: #334155;
-            --total-bg: #1e3a8a;
-            --total-border: #2563eb;
+            --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc;
+            --primary: #3b82f6; --secondary: #94a3b8;
+            --input-border: #334155; --row-border: #334155;
+            --total-bg: #1e3a8a; --total-border: #2563eb;
         }
 
-        body { font-family: 'Segoe UI', Roboto, sans-serif; padding: 15px; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; margin: auto; transition: 0.3s; }
-        
+        body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
         .header { text-align: center; margin-bottom: 20px; position: relative; }
-        .theme-toggle { position: absolute; top: 0; right: 0; background: none; border: 1px solid var(--secondary); color: var(--text); padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; width: auto; margin: 0; }
+        .theme-toggle { position: absolute; top: 0; right: 0; background: none; border: 1px solid var(--secondary); color: var(--text); padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; }
         
-        h2 { color: var(--primary); margin: 5px 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-        p.guide { font-size: 12px; color: var(--secondary); margin-bottom: 15px; }
+        h2 { color: var(--primary); margin: 5px 0; font-size: 18px; text-transform: uppercase; }
+        textarea { width: 100%; height: 120px; padding: 12px; border: 2px solid var(--input-border); border-radius: 10px; font-size: 16px; box-sizing: border-box; background: var(--card-bg); color: var(--text); font-family: monospace; }
         
-        textarea { width: 100%; height: 140px; padding: 12px; border: 2px solid var(--input-border); border-radius: 10px; font-size: 16px; box-sizing: border-box; resize: none; font-family: 'Courier New', monospace; outline: none; background: var(--card-bg); color: var(--text); transition: 0.3s; }
-        textarea:focus { border-color: var(--primary); }
-        
-        button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 12px; font-size: 16px; transition: 0.2s; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .calc-btn { background: var(--primary); color: white; }
         .share-btn { background: #25D366; color: white; display: none; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { color: var(--secondary); font-size: 11px; text-transform: uppercase; padding: 10px; text-align: left; border-bottom: 2px solid var(--row-border); }
         td { border-bottom: 1px solid var(--row-border); padding: 10px; font-size: 14px; }
         
-        .total-box { margin-top: 20px; padding: 15px; background: var(--total-bg); border-radius: 12px; text-align: center; font-size: 20px; font-weight: bold; color: var(--text); border: 1px solid var(--total-border); }
-        .history-item { font-size: 12px; padding: 10px; border-bottom: 1px solid var(--row-border); color: var(--secondary); display: flex; justify-content: space-between; }
-        .clear-btn { background: none; color: #ef4444; font-size: 11px; text-decoration: underline; padding: 5px; margin-top: 10px; width: auto; display: block; margin-left: auto; }
+        .total-box { margin-top: 15px; padding: 15px; background: var(--total-bg); border-radius: 12px; text-align: center; font-size: 20px; font-weight: bold; border: 1px solid var(--total-border); }
+        
+        .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid var(--row-border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .history-item:active { background: var(--row-border); }
+        .clear-btn { background: none; color: #ef4444; font-size: 11px; text-decoration: underline; width: auto; display: block; margin-left: auto; }
     </style>
 </head>
 <body>
@@ -67,24 +54,24 @@
     <div class="header">
         <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
         <h2>MTI Timber Calc</h2>
-        <p class="guide"><b>Menachery Timber Industries</b><br>Enter Length, Girth per line</p>
+        <p style="font-size: 12px; color: var(--secondary);">Enter Length, Girth per line</p>
     </div>
     
     <textarea id="inputData" placeholder="10, 24&#10;12, 30"></textarea>
     
-    <button class="calc-btn" onclick="processData()">Calculate Volume</button>
+    <button class="calc-btn" onclick="processData()">Calculate & Save</button>
     <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
 
     <div id="outputArea" style="display:none;">
-        <table>
-            <thead><tr><th>#</th><th>L</th><th>G</th><th>Vol (ft³)</th></tr></thead>
+        <table id="resultsTable">
+            <thead><tr><th>#</th><th>L</th><th>G</th><th>Vol</th></tr></thead>
             <tbody id="tableBody"></tbody>
         </table>
         <div class="total-box" id="totalResult"></div>
     </div>
 
     <div style="margin-top: 30px; border-top: 1px solid var(--input-border); padding-top: 20px;">
-        <h3 style="font-size: 13px; color: var(--secondary);">Recent Calculations</h3>
+        <h3 style="font-size: 14px; color: var(--secondary);">Recent Calculations (Click to view)</h3>
         <div id="historyList"></div>
         <button class="clear-btn" onclick="clearHistory()">Clear History</button>
     </div>
@@ -94,29 +81,26 @@
 let shareText = "";
 
 function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const target = current === 'dark' ? 'light' : 'dark';
+    const target = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', target);
     localStorage.setItem('mtiTheme', target);
-    document.querySelector('.theme-toggle').innerText = target === 'dark' ? '☀️ Light' : '🌙 Dark';
 }
 
 window.onload = () => {
     const savedTheme = localStorage.getItem('mtiTheme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle').innerText = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
+    if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
     displayHistory();
 };
 
 function processData() {
-    const input = document.getElementById('inputData').value;
-    const lines = input.split('\n');
+    const rawInput = document.getElementById('inputData').value;
+    const lines = rawInput.split('\n');
     const tableBody = document.getElementById('tableBody');
     tableBody.innerHTML = '';
     let grandTotal = 0;
     let count = 0;
+    let logList = [];
+
     shareText = "*Menachery Timber Industries*\n*Report*\n--------------------------\n";
 
     lines.forEach((line) => {
@@ -128,6 +112,7 @@ function processData() {
                 count++;
                 const vol = (x * y * y) / 2304;
                 grandTotal += vol;
+                logList.push({x, y, vol: vol.toFixed(3)});
                 tableBody.innerHTML += `<tr><td>${count}</td><td>${x}</td><td>${y}</td><td><b>${vol.toFixed(3)}</b></td></tr>`;
                 shareText += `${count}. L:${x}, G:${y} → *${vol.toFixed(3)}* ft³\n`;
             }
@@ -140,39 +125,59 @@ function processData() {
         const totalStr = grandTotal.toFixed(3);
         document.getElementById('totalResult').innerText = "Total: " + totalStr + " cu.ft";
         shareText += `--------------------------\n*Total: ${totalStr} cu.ft*`;
-        saveToHistory(totalStr, count);
+        saveToHistory(totalStr, count, rawInput);
     }
 }
 
-function saveToHistory(total, count) {
-    let history = JSON.parse(localStorage.getItem('mtiHistory') || "[]");
+function saveToHistory(total, count, rawInput) {
+    let history = JSON.parse(localStorage.getItem('mtiFullHistory') || "[]");
     const timestamp = new Date().toLocaleString([], {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'});
-    history.unshift({ total, count, timestamp });
-    history = history.slice(0, 10); 
-    localStorage.setItem('mtiHistory', JSON.stringify(history));
+    // We save the raw text input so we can "reload" it later
+    history.unshift({ total, count, timestamp, rawInput });
+    history = history.slice(0, 15); 
+    localStorage.setItem('mtiFullHistory', JSON.stringify(history));
     displayHistory();
 }
 
 function displayHistory() {
-    const history = JSON.parse(localStorage.getItem('mtiHistory') || "[]");
+    const history = JSON.parse(localStorage.getItem('mtiFullHistory') || "[]");
     const list = document.getElementById('historyList');
     list.innerHTML = history.length ? '' : '<p style="font-size:11px;color:#999;">No history yet.</p>';
-    history.forEach(item => {
-        list.innerHTML += `<div class="history-item"><span><b>${item.total} ft³</b> (${item.count} logs)</span><span>${item.timestamp}</span></div>`;
+    history.forEach((item, index) => {
+        list.innerHTML += `
+            <div class="history-item" onclick="viewPastCalc(${index})">
+                <span><b>${item.total} ft³</b> (${item.count} logs)</span>
+                <span style="color:var(--secondary)">${item.timestamp} ❯</span>
+            </div>`;
     });
 }
 
-function clearHistory() { localStorage.removeItem('mtiHistory'); displayHistory(); }
+function viewPastCalc(index) {
+    const history = JSON.parse(localStorage.getItem('mtiFullHistory'));
+    const item = history[index];
+    // Put the old logs back into the text area
+    document.getElementById('inputData').value = item.rawInput;
+    // Run calculation again to show the table
+    processData();
+    // Scroll to top so they see the result
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function clearHistory() { 
+    if(confirm("Delete all history?")) {
+        localStorage.removeItem('mtiFullHistory'); 
+        displayHistory(); 
+    }
+}
 
 function shareWhatsApp() {
-    const url = "https://wa.me/?text=" + encodeURIComponent(shareText);
-    window.open(url, '_blank');
+    window.open("https://wa.me/?text=" + encodeURIComponent(shareText), '_blank');
 }
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const swCode = `
-      const cacheName = 'mti-v6';
+      const cacheName = 'mti-v7';
       const assets = ['./', './index.html', './manifest.json', './icon.png'];
       self.addEventListener('install', e => { e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets))); });
       self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(res => res || fetch(e.request))); });
@@ -182,6 +187,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
 </body>
 </html>
