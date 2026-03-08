@@ -35,7 +35,9 @@
         <h2>MTI Timber Calc</h2>
         <p style="font-size: 12px; color: var(--secondary);">Menachery Timber Industries</p>
     </div>
+
     <input type="text" id="customerName" placeholder="Customer Name (Optional)">
+
     <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
             <label style="font-size: 11px; font-weight: bold; color: var(--secondary);">WOOD TYPE:</label>
@@ -49,15 +51,19 @@
             </select>
         </div>
     </div>
+
     <div class="unit-toggle-container">
         <button id="btnFt" class="unit-btn active" onclick="setUnit('ft')">Feet</button>
         <button id="btnCm" class="unit-btn" onclick="setUnit('cm')">CM</button>
         <button id="btnM" class="unit-btn" onclick="setUnit('m')">Meter</button>
     </div>
+    
     <textarea id="inputData" placeholder="Enter L, G per line"></textarea>
+    
     <button class="calc-btn" onclick="handleCalculate()">Calculate & Auto-Sync</button>
     <div id="syncStatus" class="sync-status">✔ Synced to Google Drive</div>
     <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
+
     <div id="outputArea" style="display:none;">
         <table id="resultsTable">
             <thead><tr><th>#</th><th>Type</th><th id="unitHeader">Vol</th></tr></thead>
@@ -65,15 +71,18 @@
         </table>
         <div class="total-box" id="totalResult"></div>
     </div>
+
     <div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
         <h3 style="font-size: 13px; color: var(--secondary);">History (Tap to view)</h3>
         <div id="historyList"></div>
     </div>
 </div>
+
 <script>
 let currentUnit = 'ft';
 let shareText = "";
-const DRIVE_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE"; 
+// Integrated with your live deployment URL
+const DRIVE_URL = "https://script.google.com/macros/s/AKfycbxIFJQkJUNys5-qB9BAUQNUIrDfdrgkEz-HXqZ7xLWQEgLznXOrke7kOTN1d54o3TZuPg/exec";
 
 function setUnit(u) {
     currentUnit = u;
@@ -81,6 +90,7 @@ function setUnit(u) {
     document.getElementById('btn' + u.charAt(0).toUpperCase() + u.slice(1)).classList.add('active');
     document.getElementById('unitHeader').innerText = u === 'ft' ? 'Vol (ft³)' : 'Vol (m³)';
 }
+
 function handleCalculate() {
     const rawInput = document.getElementById('inputData').value;
     const type = document.getElementById('woodType').value;
@@ -91,6 +101,7 @@ function handleCalculate() {
         autoSync(result.total, result.count, rawInput, type, customer);
     }
 }
+
 function runCalculation(raw, type, customer) {
     const lines = raw.split('\n');
     const body = document.getElementById('tableBody');
@@ -98,6 +109,7 @@ function runCalculation(raw, type, customer) {
     let total = 0, count = 0;
     let divisor = (currentUnit === 'ft') ? 2304 : (currentUnit === 'cm' ? 4000000 : 4);
     let label = (currentUnit === 'ft') ? 'ft³' : 'm³';
+
     shareText = `*MTI Report*\n*Customer:* ${customer}\n*Type:* ${type}\n--------------------------\n`;
     lines.forEach((line) => {
         const v = line.split(/[,\s\t]+/).filter(x => x.trim() !== "");
@@ -116,6 +128,7 @@ function runCalculation(raw, type, customer) {
     }
     return { total: total.toFixed(3), count };
 }
+
 function saveToHistory(t, c, r, u, type, customer) {
     let h = JSON.parse(localStorage.getItem('mti_v12') || "[]");
     const ts = new Date().toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
@@ -123,6 +136,7 @@ function saveToHistory(t, c, r, u, type, customer) {
     localStorage.setItem('mti_v12', JSON.stringify(h.slice(0, 20)));
     displayHistory();
 }
+
 function displayHistory() {
     const h = JSON.parse(localStorage.getItem('mti_v12') || "[]");
     const list = document.getElementById('historyList');
@@ -134,17 +148,24 @@ function displayHistory() {
         </div>`;
     });
 }
+
 async function autoSync(total, count, raw, type, customer) {
     const month = new Date().toLocaleString('default', { month: 'long' });
     const ts = new Date().toLocaleString();
     const content = `[${ts}] CUSTOMER: ${customer} | TYPE: ${type} | TOTAL: ${total} | LOGS: ${raw.replace(/\n/g, ' ')}`;
+    
     const status = document.getElementById('syncStatus');
-    status.style.display = 'block'; status.innerText = "Syncing...";
+    status.style.display = 'block';
+    status.innerText = "Syncing...";
+    
     try {
         await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify({ month, content }) });
         status.innerText = "✔ Auto-Synced to Google Drive";
-    } catch (e) { status.innerText = "✖ Sync Failed (Check Internet)"; }
+    } catch (e) {
+        status.innerText = "✖ Sync Failed (Check Internet)";
+    }
 }
+
 function reloadPast(i) {
     const item = JSON.parse(localStorage.getItem('mti_v12'))[i];
     setUnit(item.u);
@@ -154,6 +175,7 @@ function reloadPast(i) {
     runCalculation(item.r, item.type, item.customer);
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
+
 function toggleTheme() { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 function shareWhatsApp() { window.open("https://wa.me/?text=" + encodeURIComponent(shareText), '_blank'); }
 window.onload = () => { displayHistory(); };
