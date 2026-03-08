@@ -25,7 +25,7 @@
         th, td { border-bottom: 1px solid #edf2f7; padding: 10px; font-size: 14px; text-align: left; }
         .total-box { margin-top: 15px; padding: 15px; background: #eff6ff; border-radius: 12px; text-align: center; font-size: 20px; font-weight: bold; color: var(--primary); border: 1px solid #bfdbfe; }
         .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid #edf2f7; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .sync-status { font-size: 10px; text-align: center; color: #25D366; margin-top: 5px; display: none; font-weight: bold; }
+        .sync-status { font-size: 10px; text-align: center; color: #25D366; margin-top: 5px; font-weight: bold; }
         #historySearch { margin-top: 20px; border-color: var(--secondary); height: 40px; font-size: 14px; }
     </style>
 </head>
@@ -37,11 +37,10 @@
         <p style="font-size: 12px; color: var(--secondary);">Menachery Timber Industries</p>
     </div>
 
-    <input type="text" id="customerName" placeholder="Customer Name (Optional)">
+    <input type="text" id="customerName" placeholder="Customer Name">
 
     <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-            <label style="font-size: 11px; font-weight: bold; color: var(--secondary);">WOOD TYPE:</label>
             <select id="woodType">
                 <option value="Teak 🪵">Teak 🪵</option>
                 <option value="Mahogany 🌳">Mahogany 🌳</option>
@@ -61,12 +60,12 @@
     
     <textarea id="inputData" placeholder="Enter L, G per line"></textarea>
     
-    <button class="calc-btn" onclick="handleCalculate()">Calculate & Auto-Sync</button>
-    <div id="syncStatus" class="sync-status">✔ Synced to Google Drive</div>
+    <button class="calc-btn" onclick="handleCalculate()">Calculate & Save</button>
+    <div id="syncStatus" class="sync-status"></div>
     <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
 
     <div id="outputArea" style="display:none;">
-        <table id="resultsTable">
+        <table>
             <thead><tr><th>#</th><th>Type</th><th id="unitHeader">Vol</th></tr></thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -74,8 +73,7 @@
     </div>
 
     <div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
-        <h3 style="font-size: 13px; color: var(--secondary); margin-bottom: 5px;">History Log</h3>
-        <input type="text" id="historySearch" placeholder="🔍 Search by name or wood..." onkeyup="displayHistory()">
+        <input type="text" id="historySearch" placeholder="🔍 Search records..." onkeyup="displayHistory()">
         <div id="historyList"></div>
     </div>
 </div>
@@ -89,7 +87,6 @@ function setUnit(u) {
     currentUnit = u;
     document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btn' + u.charAt(0).toUpperCase() + u.slice(1)).classList.add('active');
-    document.getElementById('unitHeader').innerText = u === 'ft' ? 'Vol (ft³)' : 'Vol (m³)';
 }
 
 function handleCalculate() {
@@ -99,7 +96,7 @@ function handleCalculate() {
     const result = runCalculation(rawInput, type, customer);
     if (result.count > 0) {
         saveToHistory(result.total, result.count, rawInput, currentUnit, type, customer);
-        autoSync(result.total, result.count, rawInput, type, customer);
+        queueForSync(result.total, result.count, rawInput, type, customer);
     }
 }
 
@@ -138,41 +135,64 @@ function saveToHistory(t, c, r, u, type, customer) {
     displayHistory();
 }
 
+function queueForSync(total, count, raw, type, customer) {
+    let queue = JSON.parse(localStorage.getItem('mti_sync_queue')) || [];
+    const month = new Date().toLocaleString('default', { month: 'long' });
+    const ts = new Date().toLocaleString();
+    const content = `[${ts}] CUSTOMER: ${customer} | TYPE: ${type} | TOTAL: ${total} | LOGS: ${raw.replace(/\n/g, ' ')}`;
+    
+    queue.push({ month, content });
+    localStorage.setItem('mti_sync_queue', JSON.stringify(queue));
+    processSyncQueue();
+}
+
+async function processSyncQueue() {
+    let queue = JSON.parse(localStorage.getItem('mti_sync_queue')) || [];
+    const status = document.getElementById('syncStatus');
+    
+    if (queue.length === 0) {
+        status.innerText = "";
+        return;
+    }
+
+    if (!navigator.onLine) {
+        status.innerText = `⏳ ${queue.length} logs waiting for signal...`;
+        status.style.color = "#secondary";
+        return;
+    }
+
+    status.innerText = "🔄 Syncing backlog...";
+    
+    while (queue.length > 0) {
+        const item = queue[0];
+        try {
+            await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify(item) });
+            queue.shift(); // Remove only if successful
+            localStorage.setItem('mti_sync_queue', JSON.stringify(queue));
+            status.innerText = queue.length > 0 ? `🔄 ${queue.length} left...` : "✔ All Synced to Drive";
+        } catch (e) {
+            break; // Stop loop if a fetch fails
+        }
+    }
+    
+    if (queue.length === 0) setTimeout(() => { status.innerText = ""; }, 3000);
+}
+
+// Auto-trigger sync when back online
+window.addEventListener('online', processSyncQueue);
+
 function displayHistory() {
     const h = JSON.parse(localStorage.getItem('mti_final_v1')) || [];
     const searchTerm = document.getElementById('historySearch').value.toLowerCase();
     const list = document.getElementById('historyList');
     list.innerHTML = '';
-    
-    const filtered = h.filter(item => 
-        item.customer.toLowerCase().includes(searchTerm) || 
-        item.type.toLowerCase().includes(searchTerm)
-    );
-
-    if (filtered.length === 0) {
-        list.innerHTML = '<p style="font-size:11px; text-align:center; color:#999;">No matching records found.</p>';
-        return;
-    }
-
+    const filtered = h.filter(i => i.customer.toLowerCase().includes(searchTerm) || i.type.toLowerCase().includes(searchTerm));
     filtered.forEach((item, i) => {
         list.innerHTML += `<div class="history-item" onclick="reloadPast(${i})">
             <span><b>${item.t}</b> (${item.type})<br><small>${item.customer}</small></span>
             <span style="color:#666">${item.ts} ❯</span>
         </div>`;
     });
-}
-
-async function autoSync(total, count, raw, type, customer) {
-    const month = new Date().toLocaleString('default', { month: 'long' });
-    const ts = new Date().toLocaleString();
-    const content = `[${ts}] CUSTOMER: ${customer} | TYPE: ${type} | TOTAL: ${total} | LOGS: ${raw.replace(/\n/g, ' ')}`;
-    const status = document.getElementById('syncStatus');
-    status.style.display = 'block'; status.innerText = "Syncing...";
-    try {
-        await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify({ month, content }) });
-        status.innerText = "✔ Auto-Synced to Google Drive";
-        setTimeout(() => { status.style.display = 'none'; }, 3000);
-    } catch (e) { status.innerText = "✖ Sync Failed (Check Internet)"; }
 }
 
 function reloadPast(i) {
@@ -182,15 +202,13 @@ function reloadPast(i) {
     document.getElementById('woodType').value = item.type;
     document.getElementById('customerName').value = item.customer;
     document.getElementById('inputData').value = item.r;
-    
-    // We call runCalculation directly so it doesn't trigger handleCalculate (and double-save)
     runCalculation(item.r, item.type, item.customer);
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function toggleTheme() { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 function shareWhatsApp() { window.open("https://wa.me/?text=" + encodeURIComponent(shareText), '_blank'); }
-window.onload = () => { displayHistory(); };
+window.onload = () => { displayHistory(); processSyncQueue(); };
 </script>
 </body>
 </html>
