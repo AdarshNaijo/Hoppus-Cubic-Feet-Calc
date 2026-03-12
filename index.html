@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MTI Cloud Ledger</title>
+    <title>MTI Ledger Pro</title>
+    <meta name="theme-color" content="#1e3a8a">
     <style>
         :root { --bg: #f4f7f9; --card-bg: #ffffff; --text: #333; --primary: #1e3a8a; --secondary: #64748b; }
         [data-theme="dark"] { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --primary: #3b82f6; --secondary: #94a3b8; }
@@ -13,7 +14,7 @@
         .u-btn { flex: 1; padding: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); border-radius: 6px; font-weight: bold; font-size: 11px; }
         .u-btn.active { background: var(--primary); color: white; }
         .calc-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
-        .table-container { overflow-x: auto; margin-top: 15px; background: white; border-radius: 8px; }
+        .table-container { overflow-x: auto; margin-top: 15px; background: white; border-radius: 8px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; font-size: 10px; color: #333; }
         th { background: #f1f5f9; padding: 8px; border-bottom: 2px solid #ddd; text-align: left; }
         td { padding: 8px; border-bottom: 1px solid #eee; }
@@ -25,7 +26,7 @@
 <body>
 <div class="card">
     <div style="text-align:center; margin-bottom:15px;">
-        <h2 style="margin:0; color:var(--primary);">MTI Cloud Ledger</h2>
+        <h2 style="margin:0; color:var(--primary); font-size: 18px;">MTI Ledger Pro</h2>
         <p style="margin:0; font-size:11px; color:var(--secondary);">Menachery Timber Industries</p>
     </div>
 
@@ -45,24 +46,19 @@
         <button id="btnM" class="u-btn" onclick="setUnit('m')">Meter</button>
     </div>
     
-    <textarea id="inputData" rows="3" placeholder="L, G (one per line)"></textarea>
+    <textarea id="inputData" rows="3" placeholder="L, G (one log per line)"></textarea>
     <button class="calc-btn" onclick="handleCalculate()">Calculate & Cloud Sync</button>
     <div id="syncStatus" style="font-size:10px; text-align:center; margin-top:5px; color:#10b981; font-weight:bold;"></div>
 
     <div class="filter-section">
         <h3 style="font-size:13px; margin:0 0 10px 0;">📂 Cloud Archive Explorer</h3>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <select id="filterYear" style="flex:1;">
-                <option value="2026">2026</option><option value="2027">2027</option>
-            </select>
-            <select id="filterMonth" style="flex:1;">
-                <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
-                <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
-            </select>
+            <select id="filterYear" style="flex:1;"><option value="2026">2026</option><option value="2027">2027</option></select>
+            <select id="filterMonth" style="flex:1;"><option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option><option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option></select>
         </div>
-        <button class="fetch-btn" onclick="fetchFromCloud()">Load Month from Drive</button>
+        <button class="fetch-btn" onclick="fetchFromCloud()">Load Records from Drive</button>
         
-        <input type="text" id="searchCstmr" placeholder="Filter by Name/Type/Date..." onkeyup="applyLocalFilters()">
+        <input type="text" id="searchFilter" placeholder="Search by Name/Type/Date..." onkeyup="applyFilters()">
         
         <div id="cloudDisplay" class="table-container"></div>
         <div id="filterSummary"></div>
@@ -71,8 +67,9 @@
 
 <script>
 let currentUnit = 'ft';
-let cloudData = []; // This keeps phone memory clean - only holds what is currently fetched
-const DRIVE_URL = "YOUR_APPS_SCRIPT_URL_HERE";
+let cloudData = [];
+// REPLACE WITH YOUR ACTUAL DEPLOYMENT URL
+const DRIVE_URL = "https://script.google.com/macros/s/AKfycbxIFJQkJUNys5-qB9BAUQNUIrDfdrgkEz-HXqZ7xLWQEgLznXOrke7kOTN1d54o3TZuPg/exec";
 
 function setUnit(u) {
     currentUnit = u;
@@ -100,8 +97,8 @@ function handleCalculate() {
             syncToCloud(year, month, content);
         }
     });
-    alert("Logs sent to Cloud!");
     document.getElementById('inputData').value = "";
+    alert("Batch processed and synced!");
 }
 
 async function syncToCloud(year, month, content) {
@@ -111,20 +108,20 @@ async function syncToCloud(year, month, content) {
         await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify({ year, month, content }) });
         status.innerText = "✔ Saved to Drive";
         setTimeout(() => status.innerText = "", 2000);
-    } catch (e) { status.innerText = "✖ Offline"; }
+    } catch (e) { status.innerText = "✖ Backup Failed"; }
 }
 
 async function fetchFromCloud() {
     const year = document.getElementById('filterYear').value;
     const month = document.getElementById('filterMonth').value;
     const display = document.getElementById('cloudDisplay');
-    display.innerHTML = "Fetching from Drive...";
+    display.innerHTML = "<p style='text-align:center'>Fetching logs...</p>";
     
     try {
         const response = await fetch(`${DRIVE_URL}?year=${year}&month=${month}`);
         const text = await response.text();
         parseCloudText(text);
-    } catch (e) { display.innerHTML = "Error fetching data."; }
+    } catch (e) { display.innerHTML = "<p style='color:red'>Data not found.</p>"; }
 }
 
 function parseCloudText(text) {
@@ -136,11 +133,11 @@ function parseCloudText(text) {
             cloudData.push({ cstmr: p[1], type: p[2], l: p[3], g: p[4], vol: p[5], ts: p[6] });
         }
     });
-    applyLocalFilters();
+    applyFilters();
 }
 
-function applyLocalFilters() {
-    const query = document.getElementById('searchCstmr').value.toLowerCase();
+function applyFilters() {
+    const query = document.getElementById('searchFilter').value.toLowerCase();
     const display = document.getElementById('cloudDisplay');
     const summary = document.getElementById('filterSummary');
     
@@ -161,9 +158,9 @@ function applyLocalFilters() {
     });
     
     display.innerHTML = html + '</tbody></table>';
-    let summaryHtml = '<div class="summary-card"><h4>Summary</h4>';
+    let summaryHtml = '<div class="summary-card"><h4>Filtered Analytics</h4>';
     for (let type in woodTotals) summaryHtml += `<div>${type}: <b>${woodTotals[type].toFixed(3)} ft³</b></div>`;
-    summaryHtml += `<hr><div><b>Total: ${grandTotal.toFixed(3)} ft³</b></div></div>`;
+    summaryHtml += `<hr><div><b>Grand Total: ${grandTotal.toFixed(3)} ft³</b></div></div>`;
     summary.innerHTML = filtered.length > 0 ? summaryHtml : '';
 }
 </script>
