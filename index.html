@@ -3,212 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MTI Timber Calc Pro</title>
-    <meta name="theme-color" content="#1e3a8a">
-    <link rel="manifest" href="./manifest.json">
-    <link rel="icon" type="image/png" href="./icon.png">
+    <title>MTI Cloud Ledger</title>
     <style>
         :root { --bg: #f4f7f9; --card-bg: #ffffff; --text: #333; --primary: #1e3a8a; --secondary: #64748b; }
         [data-theme="dark"] { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --primary: #3b82f6; --secondary: #94a3b8; }
-        body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        .header { text-align: center; margin-bottom: 20px; position: relative; }
-        .theme-toggle { position: absolute; top: 0; right: 0; background: none; border: 1px solid var(--secondary); color: var(--text); padding: 5px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; }
-        input, select, textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; margin-bottom: 10px; background: var(--card-bg); color: var(--text); outline: none; box-sizing: border-box; }
-        .unit-toggle-container { display: flex; justify-content: center; gap: 5px; margin-bottom: 15px; }
-        .unit-btn { padding: 8px 12px; border: 1px solid var(--primary); border-radius: 20px; background: none; color: var(--primary); font-size: 11px; font-weight: bold; flex: 1; cursor: pointer; }
-        .unit-btn.active { background: var(--primary); color: white; }
-        button { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.2s; }
-        .calc-btn { background: var(--primary); color: white; }
-        .share-btn { background: #25D366; color: white; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #edf2f7; padding: 10px; font-size: 14px; text-align: left; }
-        .total-box { margin-top: 15px; padding: 15px; background: #eff6ff; border-radius: 12px; text-align: center; font-size: 20px; font-weight: bold; color: var(--primary); border: 1px solid #bfdbfe; }
-        .history-item { font-size: 13px; padding: 12px; border-bottom: 1px solid #edf2f7; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .sync-status { font-size: 10px; text-align: center; color: #25D366; margin-top: 5px; font-weight: bold; }
-        #historySearch { margin-top: 20px; border-color: var(--secondary); height: 40px; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 10px; background: var(--bg); color: var(--text); margin: 0; font-size: 13px; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px; background: var(--card-bg); color: var(--text); box-sizing: border-box; }
+        .u-btn { flex: 1; padding: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); border-radius: 6px; font-weight: bold; font-size: 11px; }
+        .u-btn.active { background: var(--primary); color: white; }
+        .calc-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        .table-container { overflow-x: auto; margin-top: 15px; background: white; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; color: #333; }
+        th { background: #f1f5f9; padding: 8px; border-bottom: 2px solid #ddd; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .summary-card { background: #eff6ff; padding: 12px; border-radius: 10px; margin-top: 15px; border: 1px solid #bfdbfe; }
+        .filter-section { background: #f1f5f9; padding: 12px; border-radius: 10px; margin-top: 20px; border: 1px solid #e2e8f0; }
+        .fetch-btn { background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 <div class="card">
-    <div class="header">
-        <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
-        <h2>MTI Timber Calc</h2>
-        <p style="font-size: 12px; color: var(--secondary);">Menachery Timber Industries</p>
+    <div style="text-align:center; margin-bottom:15px;">
+        <h2 style="margin:0; color:var(--primary);">MTI Cloud Ledger</h2>
+        <p style="margin:0; font-size:11px; color:var(--secondary);">Menachery Timber Industries</p>
     </div>
 
-    <input type="text" id="customerName" placeholder="Customer Name">
+    <input type="text" id="customerName" placeholder="Cstmr Name">
+    <select id="woodType">
+        <option value="Teak 🪵">Teak 🪵</option>
+        <option value="Mahogany 🌳">Mahogany 🌳</option>
+        <option value="Jackfruit 🌳">Jackfruit 🌳</option>
+        <option value="Coconut 🥥">Coconut 🥥</option>
+        <option value="Mango 🥭">Mango 🥭</option>
+        <option value="Other 🪵">Other</option>
+    </select>
 
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-            <select id="woodType">
-                <option value="Teak 🪵">Teak 🪵</option>
-                <option value="Mahogany 🌳">Mahogany 🌳</option>
-                <option value="Jackfruit 🌳">Jackfruit 🌳</option>
-                <option value="Coconut 🥥">Coconut 🥥</option>
-                <option value="Mango 🥭">Mango 🥭</option>
-                <option value="Other 🪵">Other</option>
+    <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <button id="btnFt" class="u-btn active" onclick="setUnit('ft')">Feet</button>
+        <button id="btnCm" class="u-btn" onclick="setUnit('cm')">CM</button>
+        <button id="btnM" class="u-btn" onclick="setUnit('m')">Meter</button>
+    </div>
+    
+    <textarea id="inputData" rows="3" placeholder="L, G (one per line)"></textarea>
+    <button class="calc-btn" onclick="handleCalculate()">Calculate & Cloud Sync</button>
+    <div id="syncStatus" style="font-size:10px; text-align:center; margin-top:5px; color:#10b981; font-weight:bold;"></div>
+
+    <div class="filter-section">
+        <h3 style="font-size:13px; margin:0 0 10px 0;">📂 Cloud Archive Explorer</h3>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <select id="filterYear" style="flex:1;">
+                <option value="2026">2026</option><option value="2027">2027</option>
+            </select>
+            <select id="filterMonth" style="flex:1;">
+                <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
+                <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
             </select>
         </div>
-    </div>
-
-    <div class="unit-toggle-container">
-        <button id="btnFt" class="unit-btn active" onclick="setUnit('ft')">Feet</button>
-        <button id="btnCm" class="unit-btn" onclick="setUnit('cm')">CM</button>
-        <button id="btnM" class="unit-btn" onclick="setUnit('m')">Meter</button>
-    </div>
-    
-    <textarea id="inputData" placeholder="Enter L, G per line"></textarea>
-    
-    <button class="calc-btn" onclick="handleCalculate()">Calculate & Save</button>
-    <div id="syncStatus" class="sync-status"></div>
-    <button id="shareBtn" class="share-btn" onclick="shareWhatsApp()">Share via WhatsApp</button>
-
-    <div id="outputArea" style="display:none;">
-        <table>
-            <thead><tr><th>#</th><th>Type</th><th id="unitHeader">Vol</th></tr></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-        <div class="total-box" id="totalResult"></div>
-    </div>
-
-    <div style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
-        <input type="text" id="historySearch" placeholder="🔍 Search records..." onkeyup="displayHistory()">
-        <div id="historyList"></div>
+        <button class="fetch-btn" onclick="fetchFromCloud()">Load Month from Drive</button>
+        
+        <input type="text" id="searchCstmr" placeholder="Filter by Name/Type/Date..." onkeyup="applyLocalFilters()">
+        
+        <div id="cloudDisplay" class="table-container"></div>
+        <div id="filterSummary"></div>
     </div>
 </div>
 
 <script>
 let currentUnit = 'ft';
-let shareText = "";
-const DRIVE_URL = "https://script.google.com/macros/s/AKfycbxIFJQkJUNys5-qB9BAUQNUIrDfdrgkEz-HXqZ7xLWQEgLznXOrke7kOTN1d54o3TZuPg/exec";
+let cloudData = []; // This keeps phone memory clean - only holds what is currently fetched
+const DRIVE_URL = "YOUR_APPS_SCRIPT_URL_HERE";
 
 function setUnit(u) {
     currentUnit = u;
-    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.u-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btn' + u.charAt(0).toUpperCase() + u.slice(1)).classList.add('active');
 }
 
 function handleCalculate() {
-    const rawInput = document.getElementById('inputData').value;
+    const raw = document.getElementById('inputData').value;
     const type = document.getElementById('woodType').value;
-    const customer = document.getElementById('customerName').value || "Counter Sale";
-    const result = runCalculation(rawInput, type, customer);
-    if (result.count > 0) {
-        saveToHistory(result.total, result.count, rawInput, currentUnit, type, customer);
-        queueForSync(result.total, result.count, rawInput, type, customer);
-    }
-}
-
-function runCalculation(raw, type, customer) {
+    const cstmr = document.getElementById('customerName').value || "Counter Sale";
+    const now = new Date();
+    const ts = now.toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+    const month = now.toLocaleString('default', { month: 'short' });
+    const year = now.getFullYear().toString();
+    
     const lines = raw.split('\n');
-    const body = document.getElementById('tableBody');
-    body.innerHTML = '';
-    let total = 0, count = 0;
     let divisor = (currentUnit === 'ft') ? 2304 : (currentUnit === 'cm' ? 4000000 : 4);
-    let label = (currentUnit === 'ft') ? 'ft³' : 'm³';
 
-    shareText = `*MTI Report*\n*Customer:* ${customer}\n*Type:* ${type}\n--------------------------\n`;
     lines.forEach((line) => {
         const v = line.split(/[,\s\t]+/).filter(x => x.trim() !== "");
         if (v.length >= 2) {
-            count++;
             const vol = (parseFloat(v[0]) * Math.pow(parseFloat(v[1]), 2)) / divisor;
-            total += vol;
-            body.innerHTML += `<tr><td>${count}</td><td>${type}</td><td><b>${vol.toFixed(3)} ${label}</b></td></tr>`;
-            shareText += `${count}. L:${v[0]}, G:${v[1]} → *${vol.toFixed(3)}* ${label}\n`;
+            const content = `\t${cstmr}\t${type}\t${v[0]}\t${v[1]}\t${vol.toFixed(3)}\t${ts}`;
+            syncToCloud(year, month, content);
         }
     });
-    if (count > 0) {
-        document.getElementById('outputArea').style.display = 'block';
-        document.getElementById('shareBtn').style.display = 'block';
-        document.getElementById('totalResult').innerText = `Total: ${total.toFixed(3)} ${label}`;
-    }
-    return { total: total.toFixed(3), count };
+    alert("Logs sent to Cloud!");
+    document.getElementById('inputData').value = "";
 }
 
-function saveToHistory(t, c, r, u, type, customer) {
-    let h = JSON.parse(localStorage.getItem('mti_final_v1')) || [];
-    const ts = new Date().toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
-    h.unshift({ t, c, ts, r, u, type, customer });
-    localStorage.setItem('mti_final_v1', JSON.stringify(h.slice(0, 50)));
-    displayHistory();
-}
-
-function queueForSync(total, count, raw, type, customer) {
-    let queue = JSON.parse(localStorage.getItem('mti_sync_queue')) || [];
-    const month = new Date().toLocaleString('default', { month: 'long' });
-    const ts = new Date().toLocaleString();
-    const content = `[${ts}] CUSTOMER: ${customer} | TYPE: ${type} | TOTAL: ${total} | LOGS: ${raw.replace(/\n/g, ' ')}`;
-    
-    queue.push({ month, content });
-    localStorage.setItem('mti_sync_queue', JSON.stringify(queue));
-    processSyncQueue();
-}
-
-async function processSyncQueue() {
-    let queue = JSON.parse(localStorage.getItem('mti_sync_queue')) || [];
+async function syncToCloud(year, month, content) {
     const status = document.getElementById('syncStatus');
-    
-    if (queue.length === 0) {
-        status.innerText = "";
-        return;
-    }
+    status.innerText = "Syncing...";
+    try {
+        await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify({ year, month, content }) });
+        status.innerText = "✔ Saved to Drive";
+        setTimeout(() => status.innerText = "", 2000);
+    } catch (e) { status.innerText = "✖ Offline"; }
+}
 
-    if (!navigator.onLine) {
-        status.innerText = `⏳ ${queue.length} logs waiting for signal...`;
-        status.style.color = "#secondary";
-        return;
-    }
-
-    status.innerText = "🔄 Syncing backlog...";
+async function fetchFromCloud() {
+    const year = document.getElementById('filterYear').value;
+    const month = document.getElementById('filterMonth').value;
+    const display = document.getElementById('cloudDisplay');
+    display.innerHTML = "Fetching from Drive...";
     
-    while (queue.length > 0) {
-        const item = queue[0];
-        try {
-            await fetch(DRIVE_URL, { method: 'POST', body: JSON.stringify(item) });
-            queue.shift(); // Remove only if successful
-            localStorage.setItem('mti_sync_queue', JSON.stringify(queue));
-            status.innerText = queue.length > 0 ? `🔄 ${queue.length} left...` : "✔ All Synced to Drive";
-        } catch (e) {
-            break; // Stop loop if a fetch fails
+    try {
+        const response = await fetch(`${DRIVE_URL}?year=${year}&month=${month}`);
+        const text = await response.text();
+        parseCloudText(text);
+    } catch (e) { display.innerHTML = "Error fetching data."; }
+}
+
+function parseCloudText(text) {
+    const lines = text.split('\n');
+    cloudData = [];
+    lines.forEach(line => {
+        const p = line.split('\t');
+        if(p.length >= 6) {
+            cloudData.push({ cstmr: p[1], type: p[2], l: p[3], g: p[4], vol: p[5], ts: p[6] });
         }
-    }
-    
-    if (queue.length === 0) setTimeout(() => { status.innerText = ""; }, 3000);
-}
-
-// Auto-trigger sync when back online
-window.addEventListener('online', processSyncQueue);
-
-function displayHistory() {
-    const h = JSON.parse(localStorage.getItem('mti_final_v1')) || [];
-    const searchTerm = document.getElementById('historySearch').value.toLowerCase();
-    const list = document.getElementById('historyList');
-    list.innerHTML = '';
-    const filtered = h.filter(i => i.customer.toLowerCase().includes(searchTerm) || i.type.toLowerCase().includes(searchTerm));
-    filtered.forEach((item, i) => {
-        list.innerHTML += `<div class="history-item" onclick="reloadPast(${i})">
-            <span><b>${item.t}</b> (${item.type})<br><small>${item.customer}</small></span>
-            <span style="color:#666">${item.ts} ❯</span>
-        </div>`;
     });
+    applyLocalFilters();
 }
 
-function reloadPast(i) {
-    const h = JSON.parse(localStorage.getItem('mti_final_v1'));
-    const item = h[i];
-    setUnit(item.u);
-    document.getElementById('woodType').value = item.type;
-    document.getElementById('customerName').value = item.customer;
-    document.getElementById('inputData').value = item.r;
-    runCalculation(item.r, item.type, item.customer);
-    window.scrollTo({top: 0, behavior: 'smooth'});
-}
+function applyLocalFilters() {
+    const query = document.getElementById('searchCstmr').value.toLowerCase();
+    const display = document.getElementById('cloudDisplay');
+    const summary = document.getElementById('filterSummary');
+    
+    const filtered = cloudData.filter(i => 
+        i.cstmr.toLowerCase().includes(query) || 
+        i.type.toLowerCase().includes(query) || 
+        i.ts.toLowerCase().includes(query)
+    );
 
-function toggleTheme() { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-function shareWhatsApp() { window.open("https://wa.me/?text=" + encodeURIComponent(shareText), '_blank'); }
-window.onload = () => { displayHistory(); processSyncQueue(); };
+    let html = '<table><thead><tr><th>No.</th><th>Cstmr</th><th>Type</th><th>L</th><th>G</th><th>Vol.</th></tr></thead><tbody>';
+    let woodTotals = {};
+    let grandTotal = 0;
+
+    filtered.forEach((i, idx) => {
+        html += `<tr><td>${idx+1}</td><td>${i.cstmr}</td><td>${i.type}</td><td>${i.l}</td><td>${i.g}</td><td>${i.vol}</td></tr>`;
+        woodTotals[i.type] = (woodTotals[i.type] || 0) + parseFloat(i.vol);
+        grandTotal += parseFloat(i.vol);
+    });
+    
+    display.innerHTML = html + '</tbody></table>';
+    let summaryHtml = '<div class="summary-card"><h4>Summary</h4>';
+    for (let type in woodTotals) summaryHtml += `<div>${type}: <b>${woodTotals[type].toFixed(3)} ft³</b></div>`;
+    summaryHtml += `<hr><div><b>Total: ${grandTotal.toFixed(3)} ft³</b></div></div>`;
+    summary.innerHTML = filtered.length > 0 ? summaryHtml : '';
+}
 </script>
 </body>
 </html>
