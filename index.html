@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MTI Ledger Pro</title>
-    <meta name="theme-color" content="#1e3a8a">
     <style>
         :root { --bg: #f4f7f9; --card-bg: #ffffff; --text: #333; --primary: #1e3a8a; --secondary: #64748b; }
-        [data-theme="dark"] { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --primary: #3b82f6; --secondary: #94a3b8; }
         body { font-family: 'Segoe UI', sans-serif; padding: 10px; background: var(--bg); color: var(--text); margin: 0; font-size: 13px; }
         .card { background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px; background: var(--card-bg); color: var(--text); box-sizing: border-box; }
@@ -50,16 +48,19 @@
     <button class="calc-btn" onclick="handleCalculate()">Calculate & Cloud Sync</button>
     <div id="syncStatus" style="font-size:10px; text-align:center; margin-top:5px; color:#10b981; font-weight:bold;"></div>
 
+    <div id="batchArea" style="display:none;">
+        <div class="table-container" id="batchDisplay"></div>
+        <div id="batchSummary"></div>
+    </div>
+
     <div class="filter-section">
         <h3 style="font-size:13px; margin:0 0 10px 0;">📂 Cloud Archive Explorer</h3>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <select id="filterYear" style="flex:1;"><option value="2026">2026</option><option value="2027">2027</option></select>
-            <select id="filterMonth" style="flex:1;"><option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option><option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option></select>
+            <select id="filterYear" style="flex:1;"><option value="2026">2026</option></select>
+            <select id="filterMonth" style="flex:1;"><option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option><option value="Apr">Apr</option></select>
         </div>
         <button class="fetch-btn" onclick="fetchFromCloud()">Load Records from Drive</button>
-        
-        <input type="text" id="searchFilter" placeholder="Search by Name/Type/Date..." onkeyup="applyFilters()">
-        
+        <input type="text" id="searchFilter" placeholder="Search archive..." onkeyup="applyFilters()">
         <div id="cloudDisplay" class="table-container"></div>
         <div id="filterSummary"></div>
     </div>
@@ -68,7 +69,6 @@
 <script>
 let currentUnit = 'ft';
 let cloudData = [];
-// REPLACE WITH YOUR ACTUAL DEPLOYMENT URL
 const DRIVE_URL = "https://script.google.com/macros/s/AKfycbxIFJQkJUNys5-qB9BAUQNUIrDfdrgkEz-HXqZ7xLWQEgLznXOrke7kOTN1d54o3TZuPg/exec";
 
 function setUnit(u) {
@@ -88,17 +88,29 @@ function handleCalculate() {
     
     const lines = raw.split('\n');
     let divisor = (currentUnit === 'ft') ? 2304 : (currentUnit === 'cm' ? 4000000 : 4);
+    let batchLogs = [];
+    let batchTotal = 0;
 
     lines.forEach((line) => {
         const v = line.split(/[,\s\t]+/).filter(x => x.trim() !== "");
         if (v.length >= 2) {
             const vol = (parseFloat(v[0]) * Math.pow(parseFloat(v[1]), 2)) / divisor;
-            const content = `\t${cstmr}\t${type}\t${v[0]}\t${v[1]}\t${vol.toFixed(3)}\t${ts}`;
-            syncToCloud(year, month, content);
+            batchLogs.push({ cstmr, type, l: v[0], g: v[1], vol: vol.toFixed(3), ts });
+            batchTotal += vol;
+            syncToCloud(year, month, `\t${cstmr}\t${type}\t${v[0]}\t${v[1]}\t${vol.toFixed(3)}\t${ts}`);
         }
     });
-    document.getElementById('inputData').value = "";
-    alert("Batch processed and synced!");
+
+    if (batchLogs.length > 0) {
+        document.getElementById('batchArea').style.display = 'block';
+        let html = '<table><thead><tr><th>No.</th><th>Cstmr</th><th>Type</th><th>L</th><th>G</th><th>Vol.</th></tr></thead><tbody>';
+        batchLogs.forEach((i, idx) => {
+            html += `<tr><td>${idx+1}</td><td>${i.cstmr}</td><td>${i.type}</td><td>${i.l}</td><td>${i.g}</td><td>${i.vol}</td></tr>`;
+        });
+        document.getElementById('batchDisplay').innerHTML = html + '</tbody></table>';
+        document.getElementById('batchSummary').innerHTML = `<div class="summary-card"><b>Batch Total: ${batchTotal.toFixed(3)} ${currentUnit === 'ft' ? 'ft³' : 'm³'}</b></div>`;
+        document.getElementById('inputData').value = "";
+    }
 }
 
 async function syncToCloud(year, month, content) {
@@ -115,13 +127,12 @@ async function fetchFromCloud() {
     const year = document.getElementById('filterYear').value;
     const month = document.getElementById('filterMonth').value;
     const display = document.getElementById('cloudDisplay');
-    display.innerHTML = "<p style='text-align:center'>Fetching logs...</p>";
-    
+    display.innerHTML = "<p style='text-align:center'>Fetching...</p>";
     try {
         const response = await fetch(`${DRIVE_URL}?year=${year}&month=${month}`);
         const text = await response.text();
         parseCloudText(text);
-    } catch (e) { display.innerHTML = "<p style='color:red'>Data not found.</p>"; }
+    } catch (e) { display.innerHTML = "<p style='color:red'>Not found.</p>"; }
 }
 
 function parseCloudText(text) {
@@ -129,9 +140,7 @@ function parseCloudText(text) {
     cloudData = [];
     lines.forEach(line => {
         const p = line.split('\t');
-        if(p.length >= 6) {
-            cloudData.push({ cstmr: p[1], type: p[2], l: p[3], g: p[4], vol: p[5], ts: p[6] });
-        }
+        if(p.length >= 6) cloudData.push({ cstmr: p[1], type: p[2], l: p[3], g: p[4], vol: p[5], ts: p[6] });
     });
     applyFilters();
 }
@@ -139,29 +148,12 @@ function parseCloudText(text) {
 function applyFilters() {
     const query = document.getElementById('searchFilter').value.toLowerCase();
     const display = document.getElementById('cloudDisplay');
-    const summary = document.getElementById('filterSummary');
-    
-    const filtered = cloudData.filter(i => 
-        i.cstmr.toLowerCase().includes(query) || 
-        i.type.toLowerCase().includes(query) || 
-        i.ts.toLowerCase().includes(query)
-    );
-
+    const filtered = cloudData.filter(i => i.cstmr.toLowerCase().includes(query) || i.type.toLowerCase().includes(query));
     let html = '<table><thead><tr><th>No.</th><th>Cstmr</th><th>Type</th><th>L</th><th>G</th><th>Vol.</th></tr></thead><tbody>';
-    let woodTotals = {};
-    let grandTotal = 0;
-
     filtered.forEach((i, idx) => {
         html += `<tr><td>${idx+1}</td><td>${i.cstmr}</td><td>${i.type}</td><td>${i.l}</td><td>${i.g}</td><td>${i.vol}</td></tr>`;
-        woodTotals[i.type] = (woodTotals[i.type] || 0) + parseFloat(i.vol);
-        grandTotal += parseFloat(i.vol);
     });
-    
     display.innerHTML = html + '</tbody></table>';
-    let summaryHtml = '<div class="summary-card"><h4>Filtered Analytics</h4>';
-    for (let type in woodTotals) summaryHtml += `<div>${type}: <b>${woodTotals[type].toFixed(3)} ft³</b></div>`;
-    summaryHtml += `<hr><div><b>Grand Total: ${grandTotal.toFixed(3)} ft³</b></div></div>`;
-    summary.innerHTML = filtered.length > 0 ? summaryHtml : '';
 }
 </script>
 </body>
